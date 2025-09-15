@@ -4,6 +4,7 @@ This document explains the core architecture and implementation details of our F
 
 ## Table of Contents
 
+- [Project Setup](#project-setup)
 - [Architecture Overview](#architecture-overview)
 - [Core Files Analysis](#core-files-analysis)
   - [config.py - Configuration Management](#configpy---configuration-management)
@@ -12,6 +13,82 @@ This document explains the core architecture and implementation details of our F
 - [How They Work Together](#how-they-work-together)
 - [Best Practices Implemented](#best-practices-implemented)
 - [Domain Structure](#domain-structure)
+
+## Project Setup
+
+### Initial Project Creation
+
+To create a new FastAPI project following this structure, run these commands:
+
+```bash
+# Create project directory
+mkdir project-name
+cd project-name
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate     # Windows: venv\Scripts\activate
+
+# Install core dependencies
+pip install fastapi uvicorn[standard] psycopg2-binary sqlalchemy python-dotenv
+
+# Generate requirements file
+pip freeze > requirements.txt
+```
+
+### Additional Dependencies Used in This Project
+
+```bash
+# For advanced configuration management
+pip install pydantic-settings
+
+# For email validation in partners API
+pip install email-validator
+```
+
+### Project Structure Creation
+
+After installing dependencies, create the following structure:
+
+```bash
+# Create source directory
+mkdir src
+
+# Create domain modules
+mkdir src/posts src/partners
+
+# Create core files
+touch src/__init__.py src/config.py src/database.py src/main.py
+touch src/posts/__init__.py src/posts/router.py src/posts/schemas.py src/posts/models.py src/posts/service.py
+touch src/partners/__init__.py src/partners/router.py src/partners/schemas.py src/partners/models.py src/partners/service.py
+
+# Create environment and Docker files
+touch .env docker-compose.yml Dockerfile .gitignore
+```
+
+### Environment Setup
+
+Create a `.env` file with the following variables:
+
+```env
+DATABASE_URL=postgresql://blog_user:blog_pass@db:5432/blog_db
+SECRET_KEY=supersecretkey
+ENVIRONMENT=development
+```
+
+### Docker Setup
+
+This project uses Docker for development. To start the application:
+
+```bash
+# Build and start containers
+docker-compose up --build
+
+# For development with hot reload
+docker-compose up --build
+```
+
+The application will be available at `http://localhost:8000` with automatic API documentation at `http://localhost:8000/docs`.
 
 ## Architecture Overview
 
