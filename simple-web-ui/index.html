@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyBite - AI Calorie Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e8ef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .toggle {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .toggle a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 0.75rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #fcc;
+        }
+
+        .success {
+            background: #efe;
+            color: #363;
+            padding: 0.75rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #cfc;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .meals-section h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .meal-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9ff;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+        }
+
+        .meal-icon {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+
+        .meal-info {
+            flex: 1;
+        }
+
+        .meal-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .meal-calories {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .upload-area:hover {
+            background: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            background: #f0f4ff;
+            border-color: #4c5fd7;
+        }
+
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login/Register Form -->
+        <div id="authForm">
+            <div class="logo">
+                <h1>🍽️ DailyBite</h1>
+                <p>Track your calories with AI</p>
+            </div>
+
+            <div id="errorMessage" class="error hidden"></div>
+            <div id="successMessage" class="success hidden"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group" id="nameGroup" style="display: none;">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName">
+                </div>
+                <button type="submit" class="btn" id="submitBtn">Login</button>
+            </form>
+
+            <div class="toggle">
+                <a href="#" id="toggleAuth">Don't have an account? Register</a>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="dashboard">
+            <div class="logo">
+                <h2>📊 Dashboard</h2>
+                <p>Welcome back!</p>
+            </div>
+
+            <div class="summary-card">
+                <h3>Today's Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="caloriesConsumed">0</div>
+                        <div class="stat-label">Consumed</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="calorieGoal">2000</div>
+                        <div class="stat-label">Goal</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div>📸 Click to upload meal photo</div>
+                <div style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
+                    Or drag and drop an image here
+                </div>
+            </div>
+            <input type="file" id="fileInput" accept="image/*">
+
+            <div class="meals-section">
+                <h3>Today's Meals</h3>
+                <div id="mealsList">
+                    <div style="text-align: center; color: #666; padding: 2rem;">
+                        No meals added today. Upload a photo to get started!
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="logout()" style="margin-top: 1rem; background: #dc3545;">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let isRegisterMode = false;
+        let currentUser = null;
+        let authToken = null;
+
+        // Check if user is logged in on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                authToken = token;
+                showDashboard();
+                loadUserData();
+            }
+        });
+
+        // Toggle between login and register
+        document.getElementById('toggleAuth').addEventListener('click', function(e) {
+            e.preventDefault();
+            isRegisterMode = !isRegisterMode;
+            
+            const nameGroup = document.getElementById('nameGroup');
+            const submitBtn = document.getElementById('submitBtn');
+            const toggleLink = document.getElementById('toggleAuth');
+            
+            if (isRegisterMode) {
+                nameGroup.style.display = 'block';
+                submitBtn.textContent = 'Register';
+                toggleLink.textContent = 'Already have an account? Login';
+            } else {
+                nameGroup.style.display = 'none';
+                submitBtn.textContent = 'Login';
+                toggleLink.textContent = "Don't have an account? Register";
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('fullName').value;
+            
+            try {
+                if (isRegisterMode) {
+                    await register(email, password, fullName);
+                } else {
+                    await login(email, password);
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+
+        // Authentication functions
+        async function login(email, password) {
+            const formData = new FormData();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            const response = await fetch(`${API_BASE}/auth/token`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Login failed');
+            }
+
+            const data = await response.json();
+            authToken = data.access_token;
+            localStorage.setItem('authToken', authToken);
+            
+            showSuccess('Login successful!');
+            setTimeout(() => {
+                showDashboard();
+                loadUserData();
+            }, 1000);
+        }
+
+        async function register(email, password, fullName) {
+            const response = await fetch(`${API_BASE}/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                    full_name: fullName
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Registration failed');
+            }
+
+            const data = await response.json();
+            authToken = data.access_token;
+            localStorage.setItem('authToken', authToken);
+            
+            showSuccess('Registration successful!');
+            setTimeout(() => {
+                showDashboard();
+                loadUserData();
+            }, 1000);
+        }
+
+        async function loadUserData() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    currentUser = await response.json();
+                    updateDashboard();
+                    loadTodaysMeals();
+                }
+            } catch (error) {
+                console.error('Failed to load user data:', error);
+            }
+        }
+
+        async function loadTodaysMeals() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await fetch(`${API_BASE}/meals/?date=${today}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const meals = await response.json();
+                    displayMeals(meals);
+                    updateProgress(meals);
+                }
+            } catch (error) {
+                console.error('Failed to load meals:', error);
+            }
+        }
+
+        function updateDashboard() {
+            if (currentUser) {
+                document.getElementById('calorieGoal').textContent = currentUser.daily_calorie_goal || 2000;
+            }
+        }
+
+        function displayMeals(meals) {
+            const mealsList = document.getElementById('mealsList');
+            
+            if (meals.length === 0) {
+                mealsList.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 2rem;">
+                        No meals added today. Upload a photo to get started!
+                    </div>
+                `;
+                return;
+            }
+
+            mealsList.innerHTML = meals.map(meal => `
+                <div class="meal-item">
+                    <div class="meal-icon">🍽️</div>
+                    <div class="meal-info">
+                        <div class="meal-name">${meal.food_name}</div>
+                        <div class="meal-calories">${meal.calories} calories</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateProgress(meals) {
+            const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0);
+            const goal = currentUser ? currentUser.daily_calorie_goal : 2000;
+            const progress = Math.min((totalCalories / goal) * 100, 100);
+            
+            document.getElementById('caloriesConsumed').textContent = totalCalories;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        // File upload handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                uploadMealPhoto(file);
+            }
+        });
+
+        // Drag and drop
+        const uploadArea = document.querySelector('.upload-area');
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function() {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                uploadMealPhoto(file);
+            }
+        });
+
+        async function uploadMealPhoto(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                uploadArea.innerHTML = '<div>📤 Analyzing photo...</div>';
+                
+                const response = await fetch(`${API_BASE}/meals/analyze-photo`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to analyze photo');
+                }
+
+                const meal = await response.json();
+                showSuccess(`Added ${meal.food_name} (${meal.calories} calories)!`);
+                
+                // Reload meals
+                loadTodaysMeals();
+                
+            } catch (error) {
+                showError('Failed to analyze photo: ' + error.message);
+            } finally {
+                // Reset upload area
+                uploadArea.innerHTML = `
+                    <div>📸 Click to upload meal photo</div>
+                    <div style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
+                        Or drag and drop an image here
+                    </div>
+                `;
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('authForm').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            currentUser = null;
+            
+            document.getElementById('authForm').style.display = 'block';
+            document.getElementById('dashboard').classList.remove('active');
+            
+            // Reset form
+            document.getElementById('loginForm').reset();
+            hideMessages();
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                successDiv.classList.add('hidden');
+            }, 3000);
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').classList.add('hidden');
+            document.getElementById('successMessage').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

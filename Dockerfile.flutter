@@ -1,0 +1,39 @@
+# Multi-stage Flutter Web Dockerfile
+FROM ghcr.io/cirruslabs/flutter:3.16.9 as builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy pubspec files first for better caching
+COPY dailybite_mobile/pubspec.yaml dailybite_mobile/pubspec.lock ./
+
+# Enable web support and get dependencies
+RUN flutter config --enable-web
+RUN flutter pub get
+
+# Copy the entire Flutter app
+COPY dailybite_mobile/ .
+
+# Build for web with API URL as environment variable
+RUN flutter build web --release --dart-define=API_BASE_URL=http://backend:8000
+
+# Production stage with nginx
+FROM nginx:alpine
+
+# Copy built web app to nginx html directory
+COPY --from=builder /app/build/web /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY dailybite_mobile/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Create a script to replace API URL at runtime
+RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
+    echo 'sed -i "s|http://backend:8000|${API_BASE_URL:-http://localhost:8000}|g" /usr/share/nginx/html/main.dart.js' >> /docker-entrypoint.sh && \
+    echo 'nginx -g "daemon off;"' >> /docker-entrypoint.sh && \
+    chmod +x /docker-entrypoint.sh
+
+# Expose port 80
+EXPOSE 80
+
+# Use the custom entrypoint
+ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -1,0 +1,83 @@
+# DailyBite Docker Commands
+
+.PHONY: help build up down logs clean restart backend frontend db
+
+help: ## Show this help message
+	@echo "DailyBite Docker Management"
+	@echo "Available commands:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+build: ## Build all Docker images
+	docker-compose build
+
+up: ## Start all services (backend, frontend, database)
+	docker-compose up -d
+
+down: ## Stop all services
+	docker-compose down
+
+logs: ## Show logs for all services
+	docker-compose logs -f
+
+logs-backend: ## Show backend logs only
+	docker-compose logs -f backend
+
+logs-frontend: ## Show frontend logs only
+	docker-compose logs -f frontend
+
+logs-db: ## Show database logs only
+	docker-compose logs -f db
+
+restart: ## Restart all services
+	docker-compose restart
+
+restart-backend: ## Restart backend only
+	docker-compose restart backend
+
+restart-frontend: ## Restart frontend only
+	docker-compose restart frontend
+
+backend: ## Start only backend and database
+	docker-compose up -d backend db
+
+frontend: ## Start only frontend (requires backend to be running)
+	docker-compose up -d frontend
+
+db: ## Start only database
+	docker-compose up -d db
+
+clean: ## Remove all containers, networks, and volumes
+	docker-compose down -v --remove-orphans
+	docker system prune -f
+
+rebuild: ## Rebuild and restart all services
+	docker-compose down
+	docker-compose build --no-cache
+	docker-compose up -d
+
+status: ## Show status of all services
+	docker-compose ps
+
+shell-backend: ## Open shell in backend container
+	docker-compose exec backend bash
+
+shell-frontend: ## Open shell in frontend container
+	docker-compose exec frontend sh
+
+dev-setup: ## Development setup - build and start all services with logs
+	docker-compose build
+	docker-compose up
+
+prod-setup: ## Production setup - build and start all services in background
+	docker-compose build
+	docker-compose up -d
+
+# Database commands
+db-shell: ## Connect to PostgreSQL database
+	docker-compose exec db psql -U dailybite_user -d dailybite_db
+
+db-backup: ## Backup database
+	docker-compose exec db pg_dump -U dailybite_user dailybite_db > backup_$(shell date +%Y%m%d_%H%M%S).sql
+
+db-restore: ## Restore database (usage: make db-restore FILE=backup.sql)
+	docker-compose exec -T db psql -U dailybite_user -d dailybite_db < $(FILE)

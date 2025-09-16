@@ -1,8 +1,11 @@
 version: "3.9"
 services:
-  web:
-    build: .
-    container_name: fastapi_app
+  # FastAPI Backend
+  backend:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: dailybite_backend
     ports:
       - "8000:8000"
     env_file: .env
@@ -10,18 +13,44 @@ services:
       - db
     volumes:
       - .:/app
+      - uploads:/app/uploads
+    environment:
+      - DATABASE_URL=postgresql://dailybite_user:dailybite_pass@db:5432/dailybite_db
+    networks:
+      - dailybite_network
 
+  # Flutter Web Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.flutter
+    container_name: dailybite_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - dailybite_network
+
+  # PostgreSQL Database
   db:
     image: postgres:15
-    container_name: postgres_db
+    container_name: dailybite_postgres
     environment:
-      POSTGRES_USER: blog_user
-      POSTGRES_PASSWORD: blog_pass
-      POSTGRES_DB: blog_db
+      POSTGRES_USER: dailybite_user
+      POSTGRES_PASSWORD: dailybite_pass
+      POSTGRES_DB: dailybite_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dailybite_network
 
 volumes:
   postgres_data:
+  uploads:
+
+networks:
+  dailybite_network:
+    driver: bridge

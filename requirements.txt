@@ -4,7 +4,7 @@ click==8.2.1
 email-validator==2.1.0
 fastapi==0.116.1
 greenlet==3.2.4
-h11==0.16.0
+h11>=0.13,<0.15
 httptools==0.6.4
 idna==3.10
 psycopg2-binary==2.9.10
@@ -22,3 +22,14 @@ uvicorn==0.35.0
 uvloop==0.21.0
 watchfiles==1.1.0
 websockets==15.0.1
+
+# Authentication packages
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# File upload and image processing
+python-multipart==0.0.6
+Pillow==10.0.0
+
+# HTTP client for AI APIs
+httpx==0.25.0
